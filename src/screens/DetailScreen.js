@@ -1,6 +1,6 @@
 import { View, Text, StyleSheet, ScrollView, TextInput, FlatList, SafeAreaView, TouchableOpacity, RefreshControl } from 'react-native'
-import React, {useEffect, useLayoutEffect, useMemo, useState} from 'react'
-import { BorderItem, ListFeatureChoice, ShowCBBItem, Toolbar } from '../components'
+import React, {useEffect, useState} from 'react'
+import { BorderItem, ListFeatureChoice, LoadItem, ShowCBBItem, Toolbar } from '../components'
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { Color, CONTANTS, FontSize, FontWeight, Methods } from '../contants'
 import { HEIGHT } from '../contants/Contants';
@@ -13,6 +13,8 @@ const DetailScreen = (props) => {
   const {navigate, goBack} = navigation
 
   const item = route.params.item
+
+  const [loading, setLoading] = useState(false)
 
   const [detailState, setDetailState] = useState({
     reload: false,
@@ -43,6 +45,43 @@ const DetailScreen = (props) => {
   })
 
   const delete_Matrix = async() => {
+  }
+
+  const add_or_update_btn = async() => {
+    if(!item){
+      setLoading(true)
+      const resp_add = await Methods.loadData(
+        'http://tuanpc.pw/TuyenTest/api/matrix/insertMatrix.php',
+        'POST', 
+        {
+          "alias": detailState.Approval_Matrix.alias,
+          "min_Range": detailState.Approval_Matrix.min_Range,
+          "max_Range": detailState.Approval_Matrix.max_Range,
+          "feature_id": detailState.Approval_Matrix.feature_id
+        }
+      )
+      if(resp_add.value != -1) {
+        let id_approval = ""
+        detailState.list_approval.map((item) => {
+          if(item.id != -1 && item.is_check){
+            id_approval = id_approval + item.id + " "
+          }
+        })
+        const resp_add_approval = await Methods.loadData(
+          'http://tuanpc.pw/TuyenTest/api/matrix_approval/insertMatrix_Approval.php',
+          'POST', 
+          {
+            "id_matrix": resp_add.value,
+            "id_approval": "1 2"
+          }
+        )
+        setLoading(false)
+        if(resp_add_approval.value == true)
+          navigate('HomeScreen', {needload: true})
+      }
+    } else {
+
+    }
   }
 
   const loadData_Detail = async(page, step, search_txt) => {
@@ -212,7 +251,7 @@ const DetailScreen = (props) => {
       <Toolbar
         title = 'Approval Matrix'
         left_icon = 'arrow-back-circle'
-        left_Press = {goBack}
+        left_Press = {() => navigate('HomeScreen', {needload: false})}
         right_icon = {(!item) ? '' : 'trash'}
         right_Press = {delete_Matrix}
       />
@@ -405,6 +444,7 @@ const DetailScreen = (props) => {
             disabled = {!check}
             style = {{...style_Detail_SCR.btn_view, backgroundColor: (check) ? '#171C8F' : '#F3F2F2'}}
             activeOpacity = {0.9}
+            onPress = {add_or_update_btn}
           >
             <Text style = {{...style_Detail_SCR.btn_text, color: (check) ? 'white' : Color.border_color}}> 
               {(!item) ? 'ADD TO :LIST' : 'UPDATE'}
@@ -446,6 +486,10 @@ const DetailScreen = (props) => {
           onChangeCheckValue = {onChangeApprovalCheckValue}
         />
       }
+      {loading && 
+      <LoadItem
+        styles = {{position: 'absolute', top: 0, left: 0}}
+      />}
     </SafeAreaView>
   )
 }

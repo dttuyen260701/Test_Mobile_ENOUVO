@@ -19,6 +19,7 @@ const Routes = () => {
         <Stack.Screen
           name= {'HomeScreen'}
           component = {HomeScreen}
+          initialParams = {needload = false}
         />
         <Stack.Screen
           name= {'DetailScreen'}

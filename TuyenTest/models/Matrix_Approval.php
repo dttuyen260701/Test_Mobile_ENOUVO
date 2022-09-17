@@ -20,4 +20,12 @@ class Matrix_Approval{
 
         return $query_rs;
     }
+  
+  	public function create($id_matrix, $id_approval)
+    {
+        $query = "INSERT INTO `tbl_matrix_approval` (`id_matrix`, `id_approval`) VALUES ('".$id_matrix."', '".$id_approval."');";
+        $query_rs = mysqli_query($this->conn, $query);
+
+        return $query_rs;
+    }
 }

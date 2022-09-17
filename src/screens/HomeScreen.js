@@ -24,9 +24,7 @@ const HomeScreen = (props) => {
   //function of navigate to/back
   const {navigate, goBack} = navigation
 
-  useEffect(() => {
-    loadData_Home(1,10,'')
-  },[])
+  const needload = route.params.needload
 
   const loadMaTrixByFeature = async(page, step, search_txt) => {
     let feature_id = ""
@@ -69,6 +67,14 @@ const HomeScreen = (props) => {
       list_Approval_Matrix: resp_Matrix
     })
   }
+
+  if(needload){
+    loadData_Home(1,10,'')
+  }
+
+  useEffect(() => {
+    loadData_Home(1,10,'')
+  }, [])
 
   const onChangeCheckValue = (item) => {
     homeState.list_feature.map((feature) => {

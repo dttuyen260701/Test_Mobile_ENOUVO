@@ -4,6 +4,7 @@ import ShowCBBItem from "./ShowCBBItem"
 import ListFeatureChoice from "./ListFeatureChoice"
 import FeatureChoiceItem from "./FeatureChoiceItem"
 import ApprovalMatrixItem from "./ApprovalMatrixItem"
+import LoadItem from "./LoadItem"
 
 export {
   Toolbar,
@@ -11,5 +12,6 @@ export {
   ShowCBBItem,
   ListFeatureChoice,
   FeatureChoiceItem,
-  ApprovalMatrixItem
+  ApprovalMatrixItem,
+  LoadItem
 }

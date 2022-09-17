@@ -30,11 +30,10 @@ class Matrix{
             if($i == 0){
               $str_feature = $str_feature."tbl_matrix.feature_id = ".$array[$i];
             } else { 
-              if($i == count($array) - 1){
-                $str_feature = $str_feature." AND";
-              } else {
                 $str_feature = $str_feature." OR tbl_matrix.feature_id = ".$array[$i];
-              }
+            }
+            if($i == count($array) - 1){
+              $str_feature = $str_feature." AND";
             }
         } 
 
@@ -44,13 +43,19 @@ class Matrix{
         return $query_rs;
     }
   
-  	public function insertMatrix($page, $step, $search_txt)
+  	public function create($matrix)
     {
-        $index = ($page - 1) * $step; 
+        $query_MaxID = "SELECT MAX(id) FROM tbl_matrix";
+      	$query_rs_MaxID = mysqli_query($this->conn, $query_MaxID);
+        $result1 = mysqli_fetch_assoc($query_rs_MaxID);
+        $result['Next_ID'] = $result1['MAX(id)'] + 1;
 
-        $query = "INSERT INTO `tbl_matrix` (`id`, `alias`, `min_Range`, `max_Range`, `feature_id`) VALUES (NULL, 'Transfer Add', '1000', '10000', '3');";
+        $query = "INSERT INTO `tbl_matrix` (`id`, `alias`, `min_Range`, `max_Range`, `feature_id`) VALUES (".$result['Next_ID'].", '".$matrix['alias']."', '".$matrix['min_Range']."', '".$matrix['max_Range']."', '".$matrix['feature_id']."');";
         $query_rs = mysqli_query($this->conn, $query);
-
-        return $query_rs;
+		if($query_rs) {
+          return $result['Next_ID'];
+        } else {
+          return -1;
+        }
     }
 }
