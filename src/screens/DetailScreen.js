@@ -45,6 +45,41 @@ const DetailScreen = (props) => {
   })
 
   const delete_Matrix = async() => {
+    setLoading(false)
+    try {
+      const resp_del_approval = await Methods.loadData(
+        'http://tuanpc.pw/TuyenTest/api/matrix_approval/deleteByMatrixID.php',
+        'DELETE', 
+        {
+          "id_matrix": detailState.Approval_Matrix.id,
+        }
+      )
+      if(resp_del_approval.value == true){
+        const resp_del_matrix = await Methods.loadData(
+          'http://tuanpc.pw/TuyenTest/api/matrix/deleteMatrix.php',
+          'DELETE', 
+          {
+            "id_matrix": detailState.Approval_Matrix.id,
+          }
+        )
+        setLoading(false)
+        if(resp_del_matrix.value == true){
+          navigate('HomeScreen', {needload: true})
+          alert('Delete Success!!')
+        }
+        else
+          alert('Error, Try again!')
+      }
+      else{
+        setLoading(false)
+        alert('Error, Try again!')
+      }
+    } catch (error) {
+      console.log("Delete: ", error)
+      setLoading(false)
+      alert('Error, Try again!')
+    }
+    
   }
 
   const add_or_update_btn = async() => {
@@ -103,7 +138,6 @@ const DetailScreen = (props) => {
             }
           )
           let id_approval = ""
-          console.log(detailState.list_approval)
           detailState.list_approval.map((item) => {
             if(item.id != -1 && item.is_check){
               id_approval = id_approval + item.id + " "

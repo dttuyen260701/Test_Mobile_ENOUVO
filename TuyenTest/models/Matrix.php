@@ -66,4 +66,12 @@ class Matrix{
       
 		return $query_rs;
     }
+  
+  	public function delete($id_matrix)
+    {
+      	$query = "DELETE FROM `tbl_matrix` WHERE tbl_matrix.id = ".$id_matrix.";";
+        $query_rs = mysqli_query($this->conn, $query);
+      
+		return $query_rs;
+    }
 }
