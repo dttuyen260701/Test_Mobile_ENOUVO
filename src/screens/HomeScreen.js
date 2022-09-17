@@ -33,13 +33,13 @@ const HomeScreen = (props) => {
         feature_id = feature_id + item.id + " "
       }
     })
-    const resp_Matrix = await Methods.loadData(
+    const resp_Matrix_ft = await Methods.loadData(
       `http://tuanpc.pw/TuyenTest/api/matrix/getByFeatureId.php?page=${page}&step=${step}&search_txt=${search_txt}&feature_id=${feature_id}`,
       'GET', {}
     )
     setHomeState(prevState => ({
       ...prevState,
-      list_Approval_Matrix: resp_Matrix
+      list_Approval_Matrix: resp_Matrix_ft
     }))
   }
 

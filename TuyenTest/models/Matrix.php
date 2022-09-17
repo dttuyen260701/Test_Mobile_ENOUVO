@@ -26,13 +26,13 @@ class Matrix{
         $index = ($page - 1) * $step; 
       	$array = explode(" ", $feature_id);
       	$str_feature = "";
-      	for ($i = 0; $i < count($array) - 1; $i++){
+      	for ($i = 0; $i < count($array); $i++){
             if($i == 0){
               $str_feature = $str_feature."tbl_matrix.feature_id = ".$array[$i];
             } else { 
                 $str_feature = $str_feature." OR tbl_matrix.feature_id = ".$array[$i];
             }
-            if($i == count($array) - 2){
+            if($i == count($array) - 1){
               $str_feature = $str_feature." AND";
             }
         } 

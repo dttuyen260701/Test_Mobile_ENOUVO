@@ -143,7 +143,6 @@ const DetailScreen = (props) => {
               id_approval = id_approval + item.id + " "
             }
           })
-          console.log(id_approval)
           const resp_add_approval = await Methods.loadData(
             'http://tuanpc.pw/TuyenTest/api/matrix_approval/insertMatrix_Approval.php',
             'POST', 
