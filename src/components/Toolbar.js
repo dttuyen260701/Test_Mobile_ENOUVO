@@ -30,7 +30,7 @@ const Toolbar = (props) => {
         color = 'white'
         style = {{
           ...style_Toolbar.icon,
-          right: 0
+          right: 15
         }}
       />}
     </View>

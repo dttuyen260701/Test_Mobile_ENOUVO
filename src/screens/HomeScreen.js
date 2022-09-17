@@ -1,12 +1,13 @@
-import { View, Text, StyleSheet, Button, SafeAreaView, TouchableOpacity, FlatList } from 'react-native'
-import React, { useState } from 'react'
+import { View, Text, StyleSheet, Button, SafeAreaView, TouchableOpacity, FlatList, RefreshControl } from 'react-native'
+import React, { useEffect, useState } from 'react'
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import {Color, CONTANTS, FontSize, FontWeight} from '../contants'
+import {Color, CONTANTS, FontSize, FontWeight, Methods} from '../contants'
 import {ApprovalMatrixItem, BorderItem, ListFeatureChoice, ShowCBBItem, Toolbar} from '../components'
 
 const HomeScreen = (props) => {
 
   const [homeState, setHomeState] = useState({
+    reload: false,
     showFeature: false,
     list_feature: [
       {
@@ -14,64 +15,8 @@ const HomeScreen = (props) => {
         "name": "Default",
         "is_check": true
       },
-      {
-        "id": "0",
-        "name": "Transfer Online",
-        "is_check": false
-      },
-      {
-        "id": "1",
-        "name": "Feature A",
-        "is_check": false
-      },
-      {
-        "id": "2",
-        "name": "Feature B",
-        "is_check": false
-      },
-      {
-        "id": "3",
-        "name": "Feature C",
-        "is_check": false
-      },
-      {
-        "id": "4",
-        "name": "Feature D",
-        "is_check": false
-      },
     ],
-    list_Approval_Matrix: [
-      {
-        'id': "1",
-        'alias': 'Transfer Online',
-        'feature_id': "2",
-        'min_Range': "50000",
-        'max_Range': "100000",
-        'approvals': [
-          {
-            'id': "1",
-            'name': "GROUPMG1, GROUPMG2"
-          },
-          {
-            'id': "2",
-            'name': "GROUPMG1, GROUPMG3"
-          },
-        ]
-      },
-      {
-        'id': "2",
-        'alias': 'Transfer Offline',
-        'feature_id': "1",
-        'min_Range': "0",
-        'max_Range': "50000",
-        'approvals': [
-          {
-            'id': "3",
-            'name': "GROUPMG1, GROUPMG5, GROUPMGCROSS"
-          },
-        ]
-      }
-    ],
+    list_Approval_Matrix: [],
   })
 
   //navigation
@@ -79,12 +24,61 @@ const HomeScreen = (props) => {
   //function of navigate to/back
   const {navigate, goBack} = navigation
 
-  let count = 0
+  useEffect(() => {
+    loadData_Home(1,10,'')
+  },[])
+
+  const loadMaTrixByFeature = async(page, step, search_txt) => {
+    let feature_id = ""
+    homeState.list_feature.map((item) => {
+      if(item.id != -1 && item.is_check){
+        feature_id = feature_id + item.id + " "
+      }
+    })
+    const resp_Matrix = await Methods.loadData(
+      `http://tuanpc.pw/TuyenTest/api/matrix/getByFeatureId.php?page=${page}&step=${step}&search_txt=${search_txt}&feature_id=${feature_id}`,
+      'GET', {}
+    )
+    setHomeState(prevState => ({
+      ...prevState,
+      list_Approval_Matrix: resp_Matrix
+    }))
+  }
+
+  const loadData_Home = async(page, step, search_txt) => {
+    const resp_feature = await Methods.loadData(
+      `http://tuanpc.pw/TuyenTest/api/feature/getAll.php?page=${page}&step=${step}&search_txt=${search_txt}`,
+      'GET', {}
+    )
+    const resp_Matrix = await Methods.loadData(
+      `http://tuanpc.pw/TuyenTest/api/matrix/getAll.php?page=${page}&step=${step}&search_txt=${search_txt}`,
+      'GET', {}
+    )
+    
+    setHomeState({
+      reload: false,
+      showFeature: false,
+      list_feature: [
+        {
+          "id": "-1",
+          "name": "Default",
+          "is_check": true
+        },
+        ...resp_feature
+      ],
+      list_Approval_Matrix: resp_Matrix
+    })
+  }
 
   const onChangeCheckValue = (item) => {
     homeState.list_feature.map((feature) => {
       if(feature.id === item.id){
         feature.is_check = !feature.is_check
+      }
+    })
+    homeState.list_feature.map((feature) => {
+      if(feature.id == -1){
+        feature.is_check = (homeState.list_feature.filter((feature) => (feature.is_check)).length == 0)
       }
     })
   }
@@ -121,14 +115,13 @@ const HomeScreen = (props) => {
             horizontal = {true}
             showsHorizontalScrollIndicator = {false}
             style = {{flex: 1, marginRight: 10}}
-            data = {homeState.list_feature}
-            renderItem = {({item}) => {
-              count =  item.is_check ? count + 1 : count
+            data = {homeState.list_feature.filter((feature) => (feature.is_check))}
+            renderItem = {({item, index}) => {
               return (
                 item.is_check && <ShowCBBItem
                   key = {item.id}
                   item = {item}
-                  show_border = {(count != homeState.list_feature.filter((feature) => (feature.is_check)).length)}
+                  show_border = {(index != homeState.list_feature.filter((feature) => (feature.is_check)).length - 1)}
                   onClick = {() => setHomeState(prevState => ({...prevState, showFeature: !prevState.showFeature}))}
                 />
               )
@@ -152,13 +145,36 @@ const HomeScreen = (props) => {
               onClick = {() => navigate('DetailScreen', {item: item})}
             />
           )}
+          refreshControl = {
+            <RefreshControl
+              refreshing = {homeState.reload}
+              onRefresh = {() => {
+                setHomeState({
+                  reload: true,
+                  showFeature: false,
+                  list_feature: [
+                    {
+                      "id": "-1",
+                      "name": "Default",
+                      "is_check": true
+                    },
+                  ],
+                  list_Approval_Matrix: [],
+                })
+                loadData_Home(1,10,'')
+              }}
+            />
+          }
         />
       </View>
       {homeState.showFeature && 
         <ListFeatureChoice
-          listFeature = {homeState.list_feature}
+          listFeature = {homeState.list_feature.filter((feature) => (feature.id != -1))}
           styles = {style_Home_SCR.list_feature_choice}
-          onExitPress = {() => setHomeState(prevState => ({...prevState, showFeature: false}))}
+          onExitPress = {() => {
+            setHomeState(prevState => ({...prevState, showFeature: false}))
+            loadMaTrixByFeature(1,50,'')
+          }}
           onChangeCheckValue = {onChangeCheckValue}
         />
       }

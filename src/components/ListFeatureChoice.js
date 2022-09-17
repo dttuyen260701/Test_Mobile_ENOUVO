@@ -10,10 +10,6 @@ const ListFeatureChoice = (props) => {
 
   const [searchText, setSearchText] = useState('')
 
-  const search_submit = async() => {
-    
-  }
-
   return (
     <TouchableOpacity
      style = {{...style_listFT.parent, ...styles}}
@@ -55,7 +51,7 @@ const ListFeatureChoice = (props) => {
         </View>
         <FlatList
           style = {{marginTop: 10}}
-          data = {listFeature}
+          data = {listFeature.filter((item) => (item.name.toLowerCase().includes(searchText.toLowerCase())))}
           showsHorizontalScrollIndicator = {false}
           renderItem = {({item, index}) => (
             <FeatureChoiceItem

@@ -1,8 +1,8 @@
-import { View, Text, StyleSheet, ScrollView, TextInput, FlatList, SafeAreaView, TouchableOpacity } from 'react-native'
+import { View, Text, StyleSheet, ScrollView, TextInput, FlatList, SafeAreaView, TouchableOpacity, RefreshControl } from 'react-native'
 import React, {useEffect, useLayoutEffect, useMemo, useState} from 'react'
 import { BorderItem, ListFeatureChoice, ShowCBBItem, Toolbar } from '../components'
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { Color, CONTANTS, FontSize, FontWeight } from '../contants'
+import { Color, CONTANTS, FontSize, FontWeight, Methods } from '../contants'
 import { HEIGHT } from '../contants/Contants';
 
 const DetailScreen = (props) => {
@@ -14,11 +14,8 @@ const DetailScreen = (props) => {
 
   const item = route.params.item
 
-  let count_feature = 0
-
-  let count_approval = 0
-
   const [detailState, setDetailState] = useState({
+    reload: false,
     showFeature: false,
     showApproval: false,
     list_feature: [
@@ -27,46 +24,13 @@ const DetailScreen = (props) => {
         "name": "Select Feature",
         "is_check": true
       },
-      {
-        "id": "0",
-        "name": "Transfer Online",
-        "is_check": false
-      },
-      {
-        "id": "1",
-        "name": "Feature A",
-        "is_check": false
-      },
-      {
-        "id": "2",
-        "name": "Feature B",
-        "is_check": false
-      },
-      {
-        "id": "3",
-        "name": "Feature C",
-        "is_check": false
-      },
-      {
-        "id": "4",
-        "name": "Feature D",
-        "is_check": false
-      },
     ],
     Approval_Matrix: (!item) ? {
       'alias': '',
       'min_Range': "",
       'max_Range': "",
-      'feature_id': "2",
+      'feature_id': "-1",
       'approvals': [
-        {
-          'id': "1",
-          'name': "GROUPMG1, GROUPMG2"
-        },
-        {
-          'id': "2",
-          'name': "GROUPMG1, GROUPMG3"
-        },
       ]
     } : {...item},
     list_approval: [
@@ -75,23 +39,69 @@ const DetailScreen = (props) => {
         "name": "Select Approval",
         "is_check": true
       },
-      {
-        'id': "1",
-        'name': "GROUPMG1, GROUPMG2"
-      },
-      {
-        'id': "2",
-        'name': "GROUPMG1, GROUPMG3"
-      },
-      {
-        'id': "3",
-        'name': "GROUPMG1, GROUPMG5, GROUPMGCROSS"
-      },
     ]
   })
 
+  const delete_Matrix = async() => {
+  }
+
+  const loadData_Detail = async(page, step, search_txt) => {
+    const resp_feature_rs = await Methods.loadData(
+      `http://tuanpc.pw/TuyenTest/api/feature/getAll.php?page=${page}&step=${step}&search_txt=${search_txt}`,
+      'GET', {}
+    )
+    const resp_Approval_rs = await Methods.loadData(
+      `http://tuanpc.pw/TuyenTest/api/approval/getAll.php?page=${page}&step=${step}&search_txt=${search_txt}`,
+      'GET', {}
+    )
+    const resp_feature = [
+      {
+        "id": "-1",
+        "name": "Select Feature",
+        "is_check": true
+      },
+      ...resp_feature_rs
+    ]
+    const resp_Approval = [
+      {
+        "id": "-1",
+        "name": "Select Approval",
+        "is_check": true
+      },
+      ...resp_Approval_rs
+    ]
+    if(item) {
+      resp_feature.map((temp) => {
+        if(temp.id == -1) {
+          temp.is_check = false
+        }
+        if(item.feature_id == temp.id)
+          temp.is_check = true
+      })
+      item.approvals.map((approval) => {
+        resp_Approval.map((temp) => {
+          if(temp.id == -1) {
+            temp.is_check = false
+          }
+          if(approval.id == temp.id)
+            temp.is_check = true
+        })
+      })
+    }
+    setDetailState(prevState => ({
+      ...prevState,
+      reload: false,
+      list_feature: resp_feature,
+      list_approval: resp_Approval
+    }))
+  }
+
+  useEffect(() => {
+    loadData_Detail(1,10,'')
+  }, [])
+
   const check_valid = () => {
-    if(detailState.list_approval.filter((approval) => (approval.is_check)).length == 0)
+    if(detailState.list_approval.filter((approval) => (approval.is_check && approval.id != -1)).length == 0)
       return false
     if(detailState.feature_id == -1)
       return false
@@ -142,13 +152,6 @@ const DetailScreen = (props) => {
       })
     }
   }
-
-  useLayoutEffect(() => {
-    setUp()
-    setDetailState(prevState => ({
-      ...prevState
-    }))
-  }, [])
 
   const reset_Click = () => {
     setUp()
@@ -209,7 +212,9 @@ const DetailScreen = (props) => {
       <Toolbar
         title = 'Approval Matrix'
         left_icon = 'arrow-back-circle'
-        left_Press = {() => goBack()}
+        left_Press = {goBack}
+        right_icon = {(!item) ? '' : 'trash'}
+        right_Press = {delete_Matrix}
       />
       <View style = {style_Detail_SCR.content}>
         <Text style = {style_Detail_SCR.title}>
@@ -220,6 +225,32 @@ const DetailScreen = (props) => {
         />
         <ScrollView 
           showsVerticalScrollIndicator={false}
+          refreshControl = {
+            <RefreshControl
+              refreshing = {detailState.reload}
+              onRefresh = {() => {
+                setDetailState(prevState => ({
+                  ...prevState,
+                  reload: true,
+                  list_feature: [
+                    {
+                      "id": "-1",
+                      "name": "Select Feature",
+                      "is_check": true
+                    },
+                  ],
+                  list_approval: [
+                    {
+                      "id": "-1",
+                      "name": "Select Approval",
+                      "is_check": true
+                    },
+                  ],
+                }))
+                loadData_Detail(1,10,'')
+              }}
+            />
+          }
         >
           <View style = {{...style_Detail_SCR.area, marginTop: 20}}>
             <Text style = {style_Detail_SCR.text_area}>
@@ -253,17 +284,16 @@ const DetailScreen = (props) => {
                 horizontal = {true}
                 showsHorizontalScrollIndicator = {false}
                 style = {{flex: 1, marginRight: 10}}
-                data = {detailState.list_feature}
-                renderItem = {({item}) => {
-                  count_feature = item.is_check ? count_feature + 1 : count_feature
+                data = {detailState.list_feature.filter((temp) => (temp.is_check))}
+                renderItem = {({item, index}) => {
                   return(
                     item.is_check && <ShowCBBItem
                       key = {item.id}
                       item = {item}
-                      styles_parent = {{marginLeft: (item.id == -1 || count_feature == 1) ? 0 : 10}}
+                      styles_parent = {{marginLeft: (item.id == -1 || index == 0) ? 0 : 10}}
                       styles_border = {{height: (item.id == -1) ? 0 : 30, backgroundColor: 'black'}}
                       styles_text = {{color: (item.id == -1) ? Color.border_color : 'black'}}
-                      show_border = {(count_feature != detailState.list_feature.filter((feature) => (feature.is_check)).length)}
+                      show_border = {(index != detailState.list_feature.filter((feature) => (feature.is_check)).length - 1)}
                       onClick = {() => setDetailState(prevState => ({...prevState, showFeature: !prevState.showFeature}))}
                     />
                   )
@@ -340,17 +370,16 @@ const DetailScreen = (props) => {
                 horizontal = {true}
                 showsHorizontalScrollIndicator = {false}
                 style = {{flex: 1, marginRight: 10}}
-                data = {detailState.list_approval}
-                renderItem = {({item}) => {
-                  count_approval = item.is_check ? count_approval + 1 : count_approval
+                data = {detailState.list_approval.filter((temp) => (temp.is_check))}
+                renderItem = {({item, index}) => {
                   return(
                     item.is_check && <ShowCBBItem
                       key = {item.id}
                       item = {item}
-                      styles_parent = {{marginLeft: (item.id == -1 || count_approval == 1) ? 0 : 10}}
+                      styles_parent = {{marginLeft: (item.id == -1 || index == 0) ? 0 : 10}}
                       styles_border = {{height: (item.id == -1) ? 0 : 30, backgroundColor: 'black'}}
                       styles_text = {{color: (item.id == -1) ? Color.border_color : 'black'}}
-                      show_border = {(count_approval != detailState.list_approval.filter((approval) => (approval.is_check)).length)}
+                      show_border = {(index != detailState.list_approval.filter((approval) => (approval.is_check)).length - 1)}
                       onClick = {() => setDetailState(prevState => ({...prevState, showApproval: !prevState.showApproval}))}
                     />
                   )
