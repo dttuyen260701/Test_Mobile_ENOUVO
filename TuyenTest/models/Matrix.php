@@ -26,13 +26,13 @@ class Matrix{
         $index = ($page - 1) * $step; 
       	$array = explode(" ", $feature_id);
       	$str_feature = "";
-      	for ($i = 0; $i < count($array); $i++){
+      	for ($i = 0; $i < count($array) - 1; $i++){
             if($i == 0){
               $str_feature = $str_feature."tbl_matrix.feature_id = ".$array[$i];
             } else { 
                 $str_feature = $str_feature." OR tbl_matrix.feature_id = ".$array[$i];
             }
-            if($i == count($array) - 1){
+            if($i == count($array) - 2){
               $str_feature = $str_feature." AND";
             }
         } 
@@ -57,5 +57,13 @@ class Matrix{
         } else {
           return -1;
         }
+    }
+  
+  	public function update($matrix)
+    {
+      	$query = "UPDATE `tbl_matrix` SET `alias`='".$matrix['alias']."',`min_Range`='".$matrix['min_Range']."',`max_Range`='".$matrix['max_Range']."',`feature_id`='".$matrix['feature_id']."' WHERE tbl_matrix.id = ".$matrix['id'].";";
+        $query_rs = mysqli_query($this->conn, $query);
+      
+		return $query_rs;
     }
 }

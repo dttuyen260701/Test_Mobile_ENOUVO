@@ -28,4 +28,12 @@ class Matrix_Approval{
 
         return $query_rs;
     }
+  
+  	public function delete($id_matrix)
+    {
+        $query = "DELETE FROM `tbl_matrix_approval` WHERE tbl_matrix_approval.id_matrix = ".$id_matrix.";";
+        $query_rs = mysqli_query($this->conn, $query);
+
+        return $query_rs;
+    }
 }

@@ -48,39 +48,87 @@ const DetailScreen = (props) => {
   }
 
   const add_or_update_btn = async() => {
-    if(!item){
-      setLoading(true)
-      const resp_add = await Methods.loadData(
-        'http://tuanpc.pw/TuyenTest/api/matrix/insertMatrix.php',
-        'POST', 
-        {
-          "alias": detailState.Approval_Matrix.alias,
-          "min_Range": detailState.Approval_Matrix.min_Range,
-          "max_Range": detailState.Approval_Matrix.max_Range,
-          "feature_id": detailState.Approval_Matrix.feature_id
-        }
-      )
-      if(resp_add.value != -1) {
-        let id_approval = ""
-        detailState.list_approval.map((item) => {
-          if(item.id != -1 && item.is_check){
-            id_approval = id_approval + item.id + " "
-          }
-        })
-        const resp_add_approval = await Methods.loadData(
-          'http://tuanpc.pw/TuyenTest/api/matrix_approval/insertMatrix_Approval.php',
+    setLoading(true)
+    try {
+      if(!item){
+        const resp_add = await Methods.loadData(
+          'http://tuanpc.pw/TuyenTest/api/matrix/insertMatrix.php',
           'POST', 
           {
-            "id_matrix": resp_add.value,
-            "id_approval": "1 2"
+            "alias": detailState.Approval_Matrix.alias,
+            "min_Range": detailState.Approval_Matrix.min_Range,
+            "max_Range": detailState.Approval_Matrix.max_Range,
+            "feature_id": detailState.Approval_Matrix.feature_id
           }
         )
-        setLoading(false)
-        if(resp_add_approval.value == true)
-          navigate('HomeScreen', {needload: true})
+        if(resp_add.value != -1) {
+          let id_approval = ""
+          detailState.list_approval.map((item) => {
+            if(item.id != -1 && item.is_check){
+              id_approval = id_approval + item.id + " "
+            }
+          })
+          const resp_add_approval = await Methods.loadData(
+            'http://tuanpc.pw/TuyenTest/api/matrix_approval/insertMatrix_Approval.php',
+            'POST', 
+            {
+              "id_matrix": resp_add.value,
+              "id_approval": id_approval
+            }
+          )
+          setLoading(false)
+          if(resp_add_approval.value == true)
+            navigate('HomeScreen', {needload: true})
+          else
+            alert('Error, Try again!')
+        }
+      } else {
+        const resp_update = await Methods.loadData(
+          'http://tuanpc.pw/TuyenTest/api/matrix/updateMatrix.php',
+          'PUT', 
+          {
+            "id": detailState.Approval_Matrix.id,
+            "alias": detailState.Approval_Matrix.alias,
+            "min_Range": detailState.Approval_Matrix.min_Range,
+            "max_Range": detailState.Approval_Matrix.max_Range,
+            "feature_id": detailState.Approval_Matrix.feature_id
+          }
+        )
+        if(resp_update.value == true) {
+          const resp_del_approval = await Methods.loadData(
+            'http://tuanpc.pw/TuyenTest/api/matrix_approval/deleteByMatrixID.php',
+            'DELETE', 
+            {
+              "id_matrix": detailState.Approval_Matrix.id,
+            }
+          )
+          let id_approval = ""
+          console.log(detailState.list_approval)
+          detailState.list_approval.map((item) => {
+            if(item.id != -1 && item.is_check){
+              id_approval = id_approval + item.id + " "
+            }
+          })
+          console.log(id_approval)
+          const resp_add_approval = await Methods.loadData(
+            'http://tuanpc.pw/TuyenTest/api/matrix_approval/insertMatrix_Approval.php',
+            'POST', 
+            {
+              "id_matrix": detailState.Approval_Matrix.id,
+              "id_approval": id_approval
+            }
+          )
+          setLoading(false)
+          if(resp_add_approval.value == true)
+            navigate('HomeScreen', {needload: true})
+          else
+            alert('Error, Try again!')
+        }
       }
-    } else {
-
+    } catch (error) {
+      console.log('add or edit: ', error)
+      alert('Error, Try again!')
+      setLoading(false)
     }
   }
 
