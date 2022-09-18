@@ -24,7 +24,11 @@ class Matrix{
   	public function getByFeatureID($page, $step, $search_txt, $feature_id)
     {
         $index = ($page - 1) * $step; 
-      	$array = explode(" ", $feature_id);
+      	if($feature_id == ""){
+          	$array = [];
+        } else {
+      		$array = explode(" ", $feature_id);
+        }
       	$str_feature = "";
       	for ($i = 0; $i < count($array); $i++){
             if($i == 0){
@@ -36,7 +40,6 @@ class Matrix{
               $str_feature = $str_feature." AND";
             }
         } 
-
         $query = "SELECT * FROM tbl_matrix WHERE ".$str_feature." tbl_matrix.alias LIKE '%".$search_txt."%' ORDER BY id DESC LIMIT ".$index.", ".$step.";";
         $query_rs = mysqli_query($this->conn, $query);
 

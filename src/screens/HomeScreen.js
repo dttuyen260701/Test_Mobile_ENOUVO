@@ -24,8 +24,6 @@ const HomeScreen = (props) => {
   //function of navigate to/back
   const {navigate, goBack} = navigation
 
-  const needload = route.params.needload
-
   const loadMaTrixByFeature = async(page, step, search_txt) => {
     let feature_id = ""
     homeState.list_feature.map((item) => {
@@ -52,7 +50,6 @@ const HomeScreen = (props) => {
       `http://tuanpc.pw/TuyenTest/api/matrix/getAll.php?page=${page}&step=${step}&search_txt=${search_txt}`,
       'GET', {}
     )
-    
     setHomeState({
       reload: false,
       showFeature: false,
@@ -68,9 +65,10 @@ const HomeScreen = (props) => {
     })
   }
 
-  if(needload){
+
+  useEffect(() => {
     loadData_Home(1,10,'')
-  }
+  }, [route.params?.needload])
 
   useEffect(() => {
     loadData_Home(1,10,'')
@@ -99,7 +97,7 @@ const HomeScreen = (props) => {
           <TouchableOpacity
             style = {style_Home_SCR.add_btn}
             activeOpacity = {0.9}
-            onPress = {() => navigate('DetailScreen', {item: false})}
+            onPress = {() => navigate('DetailScreen', {item: false, needload: route.params?.needload})}
           >
             <Ionicons
               size = {20}

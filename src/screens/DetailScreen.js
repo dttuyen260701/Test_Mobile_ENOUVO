@@ -14,6 +14,8 @@ const DetailScreen = (props) => {
 
   const item = route.params.item
 
+  const needload = route.params.needload
+
   const [loading, setLoading] = useState(false)
 
   const [detailState, setDetailState] = useState({
@@ -64,7 +66,7 @@ const DetailScreen = (props) => {
         )
         setLoading(false)
         if(resp_del_matrix.value == true){
-          navigate('HomeScreen', {needload: true})
+          navigate('HomeScreen', {needload: !needload})
           alert('Delete Success!!')
         }
         else
@@ -113,7 +115,7 @@ const DetailScreen = (props) => {
           )
           setLoading(false)
           if(resp_add_approval.value == true)
-            navigate('HomeScreen', {needload: true})
+            navigate('HomeScreen', {needload: !needload})
           else
             alert('Error, Try again!')
         }
@@ -153,7 +155,7 @@ const DetailScreen = (props) => {
           )
           setLoading(false)
           if(resp_add_approval.value == true)
-            navigate('HomeScreen', {needload: true})
+            navigate('HomeScreen', {needload: !needload})
           else
             alert('Error, Try again!')
         }
@@ -332,7 +334,7 @@ const DetailScreen = (props) => {
       <Toolbar
         title = 'Approval Matrix'
         left_icon = 'arrow-back-circle'
-        left_Press = {() => navigate('HomeScreen', {needload: false})}
+        left_Press = {() => navigate('HomeScreen', {needload: needload})}
         right_icon = {(!item) ? '' : 'trash'}
         right_Press = {delete_Matrix}
       />
