@@ -70,10 +70,6 @@ const HomeScreen = (props) => {
     loadData_Home(1,10,'')
   }, [route.params?.needload])
 
-  useEffect(() => {
-    loadData_Home(1,10,'')
-  }, [])
-
   const onChangeCheckValue = (item) => {
     homeState.list_feature.map((feature) => {
       if(feature.id === item.id){
